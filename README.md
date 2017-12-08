@@ -5,11 +5,15 @@
 [![License](https://img.shields.io/cocoapods/l/YPAVAssetResourceLoader.svg?style=flat)](http://cocoapods.org/pods/YPAVAssetResourceLoader)
 [![Platform](https://img.shields.io/cocoapods/p/YPAVAssetResourceLoader.svg?style=flat)](http://cocoapods.org/pods/YPAVAssetResourceLoader)
 
-## Example
+```YPAVAssetResourceLoader``` A lightweight AVAssetResourceLoaderDelegate implementation for short streaming media.
+It will cache all receiving data when playing and reuse the data next time.
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+- [x] cache media data
+- [ ] seek support
 
 ## Requirements
+
+Xcode 9 & iOS 8
 
 ## Installation
 
