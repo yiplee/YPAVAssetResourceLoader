@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'YPAVAssetResourceLoader_Example' do
+  pod 'YPAVAssetResourceLoader', :path => '../'
+
+  target 'YPAVAssetResourceLoader_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
