@@ -1,0 +1,6 @@
+framework module Pods_YPAVAssetResourceLoader_Tests {
+  umbrella header "Pods-YPAVAssetResourceLoader_Tests-umbrella.h"
+
+  export *
+  module * { export * }
+}

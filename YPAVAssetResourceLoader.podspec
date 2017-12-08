@@ -9,24 +9,18 @@
 Pod::Spec.new do |s|
   s.name             = 'YPAVAssetResourceLoader'
   s.version          = '0.1.0'
-  s.summary          = 'A short description of YPAVAssetResourceLoader.'
-
-# This description is used to generate tags and improve search results.
-#   * Think: What does it do? Why did you write it? What is the focus?
-#   * Try to keep it short, snappy and to the point.
-#   * Write the description between the DESC delimiters below.
-#   * Finally, don't worry about the indent, CocoaPods strips it!
+  s.summary          = 'A lightweight AVAssetResourceLoaderDelegate implementation for short streaming media.'
 
   s.description      = <<-DESC
-TODO: Add long description of the pod here.
+  A lightweight AVAssetResourceLoaderDelegate implementation for short streaming media.
+  Cache dowloaded file and reuse automatically!
                        DESC
 
   s.homepage         = 'https://github.com/yiplee/YPAVAssetResourceLoader'
-  # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'yiplee' => 'guoyinl@gmail.com' }
   s.source           = { :git => 'https://github.com/yiplee/YPAVAssetResourceLoader.git', :tag => s.version.to_s }
-  # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
+  s.social_media_url = 'https://twitter.com/yipleeyin'
 
   s.ios.deployment_target = '8.0'
 
@@ -36,7 +30,5 @@ TODO: Add long description of the pod here.
   #   'YPAVAssetResourceLoader' => ['YPAVAssetResourceLoader/Assets/*.png']
   # }
 
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
-  # s.dependency 'AFNetworking', '~> 2.3'
+  s.frameworks = 'AVFoundation'
 end
