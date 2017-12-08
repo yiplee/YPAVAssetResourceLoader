@@ -12,7 +12,7 @@
 
 @property (nonatomic, copy, readonly) NSString *contentType;
 @property (nonatomic, assign, readonly) BOOL byteRangeAccessSupported;
-@property (nonatomic, assign, readonly) unsigned long long contentLength;
+@property (nonatomic, assign, readonly) long long contentLength;
 
 - (instancetype) initWithHTTPResponse:(NSHTTPURLResponse *)response;
 

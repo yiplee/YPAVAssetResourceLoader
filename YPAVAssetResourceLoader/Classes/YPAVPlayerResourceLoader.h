@@ -40,7 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL) isContentInfoRequest;
 - (BOOL) isContentDataRequest;
 
-- (void) respondWithData:(NSData *)data dataOffset:(NSInteger)dataOffset;
+- (void) respondWithData:(NSData *)data dataOffset:(long long)dataOffset;
 
 @end
 
