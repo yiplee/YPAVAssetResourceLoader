@@ -8,14 +8,22 @@
 
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface YPAssetResourceContentInfo : NSObject
 
-@property (nonatomic, copy, readonly) NSString *contentType;
+- (instancetype) init NS_UNAVAILABLE;
+
+// make content info from http response
+- (instancetype) initWithHTTPResponse:(NSHTTPURLResponse *)response NS_DESIGNATED_INITIALIZER;
+
+// make content info from local file path
+- (instancetype) initWithLocalFilePath:(NSString *)filePath NS_DESIGNATED_INITIALIZER;
+
+@property (nonatomic, copy, readonly, nullable) NSString *contentType;
 @property (nonatomic, assign, readonly) BOOL byteRangeAccessSupported;
 @property (nonatomic, assign, readonly) long long contentLength;
 
-- (instancetype) initWithHTTPResponse:(NSHTTPURLResponse *)response;
-
-- (instancetype) initWithLocalFilePath:(NSString *)filePath;
-
 @end
+
+NS_ASSUME_NONNULL_END
