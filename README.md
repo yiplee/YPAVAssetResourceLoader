@@ -9,7 +9,7 @@
 It will cache all receiving data when playing and reuse the data next time.
 
 - [x] cache media data
-- [ ] seek support
+- [ ] seek support (todo)
 
 ## Requirements
 
@@ -24,9 +24,15 @@ it, simply add the following line to your Podfile:
 pod 'YPAVAssetResourceLoader'
 ```
 
-## Author
+## Usage
 
-yiplee, guoyinl@gmail.com
+```objc
+#import <YPAVAssetResourceLoader/YPAVPlayerResourceLoader.h>
+
+NSURL *url = [NSURL URLWithString:@"http://www.yiplee.com/example.mp4"];
+AVAsset *asset = [AVURLAsset assetWithYPResourceURL:url];
+AVPlayerItem *playerItem = [AVPlayerItem playerItemWithAsset:asset];
+```
 
 ## License
 
