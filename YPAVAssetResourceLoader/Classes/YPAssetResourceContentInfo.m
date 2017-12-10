@@ -11,8 +11,7 @@
 
 @implementation YPAssetResourceContentInfo
 
-- (instancetype) initWithHTTPResponse:(NSHTTPURLResponse *)response
-{
+- (instancetype) initWithHTTPResponse:(NSHTTPURLResponse *)response {
     self = [super init];
     if (self) {
         NSString *mimeType = [response MIMEType];
@@ -37,8 +36,7 @@
     return self;
 }
 
-- (instancetype) initWithLocalFilePath:(NSString *)filePath
-{
+- (instancetype) initWithLocalFilePath:(NSString *)filePath {
     self = [super init];
     if (self) {
         NSFileManager *manager = [NSFileManager defaultManager];
@@ -63,8 +61,7 @@
     return self;
 }
 
-- (NSString *) description
-{
+- (NSString *) description {
     return [NSString stringWithFormat:@"<%@-%p> contentType : %@ contentLength : %zd rangeSupport : %zd",NSStringFromClass(self.class),self,self.contentType,self.contentLength,self.byteRangeAccessSupported];
 }
 

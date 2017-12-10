@@ -16,9 +16,9 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
 @interface YPRemoteSourceLodingOperation : NSObject
 
 @property (nonatomic, strong) NSURLSessionDataTask *task;
-@property (nonatomic, assign) NSUInteger requestOffset;
-@property (nonatomic, assign) NSUInteger currentOffset;
-@property (nonatomic, assign) NSUInteger requestLength;
+@property (nonatomic, assign) NSInteger requestOffset;
+@property (nonatomic, assign) NSInteger currentOffset;
+@property (nonatomic, assign) NSInteger requestLength;
 
 - (BOOL) isAtEnd;
 
@@ -66,28 +66,29 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     NSFileHandle *_dataReader;
 }
 
-- (void) dealloc
-{
+- (void) dealloc {
     [_cacheWriter closeFile];
     _cacheWriter = nil;
     
     [_dataReader closeFile];
     _dataReader = nil;
+    
+    if (_temporaryFilePath) {
+        [[NSFileManager defaultManager] removeItemAtPath:_temporaryFilePath
+                                                   error:nil];
+    }
 }
 
-- (instancetype) init
-{
+- (instancetype) init {
     return [self initWithRemoteAssetURL:nil];
 }
 
-- (instancetype) initWithRemoteAssetURL:(NSURL *)assetURL
-{
+- (instancetype) initWithRemoteAssetURL:(NSURL *)assetURL {
     NSString *cacheDirectory = [self.class defaultCacheDirectory];
     return [self initWithRemoteAssetURL:assetURL diskCacheDirectory:cacheDirectory];
 }
 
-- (instancetype) initWithRemoteAssetURL:(NSURL *)assetURL diskCacheDirectory:(NSString *)directory
-{
+- (instancetype) initWithRemoteAssetURL:(NSURL *)assetURL diskCacheDirectory:(NSString *)directory {
     NSParameterAssert(assetURL && assetURL.pathExtension && directory);
     
     self = [super init];
@@ -155,7 +156,6 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     _responseQueue.name = YPAVPlayerResourceLoaderDomain;
     
     NSURLSessionConfiguration *configure = [NSURLSessionConfiguration defaultSessionConfiguration];
-//    configure.HTTPMaximumConnectionsPerHost = 2;
     _session = [NSURLSession sessionWithConfiguration:configure
                                              delegate:self
                                         delegateQueue:_responseQueue];
@@ -163,46 +163,47 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     return self;
 }
 
-- (void) invalidateAndSaveCache:(BOOL)cache
-{
+- (void) invalidateAndSaveCache:(BOOL)cache {
+    [self.loadingOperations removeAllObjects];
     [self.session invalidateAndCancel];
+    self.session = nil;
     self.responseQueue = nil;
     
-    if (cache && _cacheWriter) {
+    if (cache) {
+        [self saveCache];
+    }
+}
+
+- (void) saveCache {
+    if (_cacheWriter) {
         [_cacheWriter synchronizeFile];
         
         NSFileManager *fileManager = [NSFileManager defaultManager];
-        BOOL fileExist = [fileManager fileExistsAtPath:_videoFilePath];
-        if (!fileExist && _rootOperation.isAtEnd) {
+        if (_rootOperation.isAtEnd) {
             [fileManager moveItemAtPath:_temporaryFilePath
                                  toPath:_videoFilePath
                                   error:nil];
         } else {
-            NSError *error = nil;
             [fileManager removeItemAtPath:_downloadFilePath error:nil];
             [fileManager moveItemAtPath:_temporaryFilePath
                                  toPath:_downloadFilePath
-                                  error:&error];
-//            NSLog(@"cache file at %zd, error : %@",_rootOperation.currentOffset,error);
+                                  error:nil];
         }
     }
 }
 
 #pragma mark - configure
 
-+ (NSString *) defaultCacheDirectory
-{
++ (NSString *) defaultCacheDirectory {
     NSArray<NSString *> *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     return paths.firstObject;
 }
 
-+ (NSString *) makeDiskCachePath:(NSString *)cacheDirectory
-{
++ (NSString *) makeDiskCachePath:(NSString *)cacheDirectory {
     return [cacheDirectory stringByAppendingPathComponent:YPAVPlayerResourceLoaderDomain];
 }
 
-+ (NSString *) makeTemporaryCacheDiskPath
-{
++ (NSString *) makeTemporaryCacheDiskPath {
     return [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
 }
 
@@ -224,8 +225,7 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
 
 #pragma mark -
 
-- (NSURL *) streamingAssetURL
-{
+- (NSURL *) streamingAssetURL {
     if (!_assetURL) return nil;
     
     NSURLComponents *components = [NSURLComponents componentsWithURL:_assetURL resolvingAgainstBaseURL:NO];
@@ -236,8 +236,7 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     return components.URL;
 }
 
-- (NSURL *) originalURLFromStreamingURL:(NSURL *)url
-{
+- (NSURL *) originalURLFromStreamingURL:(NSURL *)url {
     NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:NO];
     NSString *scheme = components.scheme;
     NSString *suffix = YPAVPlayerResourceLoaderStreamingSchemeSuffix;
@@ -252,8 +251,7 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
 #pragma mark - tasks
 
 - (void) fullfilLoadingRequest:(AVAssetResourceLoadingRequest *)loadingRequest
-                   contentInfo:(YPAssetResourceContentInfo *)contentInfo
-{
+                   contentInfo:(YPAssetResourceContentInfo *)contentInfo {
     NSParameterAssert(contentInfo);
     
     loadingRequest.contentInformationRequest.contentType = contentInfo.contentType;
@@ -261,8 +259,7 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     loadingRequest.contentInformationRequest.byteRangeAccessSupported = contentInfo.byteRangeAccessSupported;
 }
 
-- (NSString *) makeRangeStringWithBytesRange:(NSRange)byteRange isToEnd:(BOOL)isToEnd
-{
+- (NSString *) makeRangeStringWithBytesRange:(NSRange)byteRange isToEnd:(BOOL)isToEnd {
     if (isToEnd) {
         return [NSString stringWithFormat:@"bytes=%zd-",byteRange.location];
     } else {
@@ -270,8 +267,7 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     }
 }
 
-- (void) handleRootOperationWithRequest:(NSURLRequest *)request
-{
+- (void) handleRootOperationWithRequest:(NSURLRequest *)request {
     NSParameterAssert(_rootOperation && (!_rootOperation.task || _rootOperation.task.error) && self.contentInfo);
     
     NSMutableURLRequest *mutableRequest = [request mutableCopy];
@@ -284,18 +280,15 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     
     _rootOperation.requestLength = self.contentInfo.contentLength;
     _rootOperation.task = task;
-    
-//    NSLog(@"root operation resume");
 }
 
-- (void) handleLoadingOperation:(YPRemoteSourceLodingOperation *)operation
-{
+- (void) handleLoadingOperation:(YPRemoteSourceLodingOperation *)operation {
     NSParameterAssert(!operation.task && operation.loadingRequest);
     
     AVAssetResourceLoadingRequest *loadingRequest = operation.loadingRequest;
     AVAssetResourceLoadingDataRequest *dataRequest = loadingRequest.dataRequest;
-    long long offset = dataRequest.currentOffset;
-    long long length = dataRequest.requestedLength - (offset - dataRequest.requestedOffset);
+    NSInteger offset = dataRequest.currentOffset;
+    NSInteger length = dataRequest.requestedLength - (offset - dataRequest.requestedOffset);
     BOOL isToEnd = NO;
     if (@available(iOS 9,*)) {
         isToEnd = dataRequest.requestsAllDataToEndOfResource;
@@ -315,16 +308,13 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     operation.requestOffset = dataRequest.requestedOffset;
     operation.currentOffset = offset;
     operation.requestLength = dataRequest.requestedLength;
-    
-//    NSLog(@"handle loading request %p %zd - %zd",loadingRequest,offset,offset + length);
 }
 
-- (BOOL) handleContentInfoRequest:(AVAssetResourceLoadingRequest *)loadingRequest
-{
+- (void) handleContentInfoRequest:(AVAssetResourceLoadingRequest *)loadingRequest {
     if (_contentInfo) {
         [self fullfilLoadingRequest:loadingRequest contentInfo:_contentInfo];
         [loadingRequest finishLoading];
-        return NO;
+        return;
     }
     
     YPRemoteSourceLodingOperation *operation = [YPRemoteSourceLodingOperation new];
@@ -332,26 +322,23 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     [self handleLoadingOperation:operation];
     
     [self.loadingOperations addObject:operation];
-    
-    return YES;
 }
 
-- (BOOL) handleContentDataRequest:(AVAssetResourceLoadingRequest *)loadingRequest
-{
+- (void) handleContentDataRequest:(AVAssetResourceLoadingRequest *)loadingRequest {
     AVAssetResourceLoadingDataRequest *dataRequest = loadingRequest.dataRequest;
-    long long offset = dataRequest.currentOffset;
-    long long length = dataRequest.requestedLength - (offset - dataRequest.requestedOffset);
+    NSInteger offset = dataRequest.currentOffset;
+    NSInteger length = dataRequest.requestedLength - (offset - dataRequest.requestedOffset);
     
-    long long cachedContentLength = _rootOperation.currentOffset;
+    NSInteger cachedContentLength = _rootOperation.currentOffset;
     if (cachedContentLength > offset) {
-        long long cachedLength = MIN(cachedContentLength - offset, length);
+        NSInteger cachedLength = MIN(cachedContentLength - offset, length);
         [_dataReader seekToFileOffset:offset];
         NSData *data = [_dataReader readDataOfLength:cachedLength];
         [dataRequest respondWithData:data];
         
         if (cachedLength >= length) {
             [loadingRequest finishLoading];
-            return NO;
+            return;
         }
     }
     
@@ -360,69 +347,60 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     
     // if the request data offset is less 200KB then cached file offset
     // don't handle it and wait the root operation
-    if (dataRequest.currentOffset - cachedContentLength > 200 * 1024)
-    {
+    if (dataRequest.currentOffset - cachedContentLength > 200 * 1024) {
         [self handleLoadingOperation:operation];
     }
     
     [self.loadingOperations addObject:operation];
-    
-//    NSLog(@"schedule loading request %p %zd (%zd)",operation.loadingRequest,dataRequest.currentOffset,offset + length);
-    
-    return YES;
 }
 
-- (void) cacheData:(NSData *)data byteRange:(NSRange)byteRange
-{
+- (void) cacheData:(NSData *)data byteRange:(NSRange)byteRange {
     NSParameterAssert(_cacheWriter.offsetInFile == byteRange.location && data.length == byteRange.length);
     if (_cacheWriter.offsetInFile== byteRange.location) {
         [_cacheWriter writeData:data];
     }
 }
 
-- (void) cancelOperation:(YPRemoteSourceLodingOperation *)operation error:(NSError *)error
-{
+- (void) cancelOperation:(YPRemoteSourceLodingOperation *)operation error:(NSError *)error {
     [self.loadingOperations removeObject:operation];
     
-    [operation.task cancel];
+    NSParameterAssert(!operation.loadingRequest.isFinished);
     if (error) [operation.loadingRequest finishLoadingWithError:error];
-    
-//    NSLog(@"cancel loading request %p",operation.loadingRequest);
+    [operation.task cancel];
 }
 
-- (void) finishOperation:(YPRemoteSourceLodingOperation *)operation
-{
+- (void) finishOperation:(YPRemoteSourceLodingOperation *)operation {
     [self.loadingOperations removeObject:operation];
     
-    [operation.task cancel];
+    NSParameterAssert(!operation.loadingRequest.isFinished);
     [operation.loadingRequest finishLoading];
-    
-//    NSLog(@"finish loading request %p",operation.loadingRequest);
+    [operation.task cancel];
 }
 
 #pragma mark - AVAssetResourceLoaderDelegate
 
-- (BOOL) resourceLoader:(AVAssetResourceLoader *)resourceLoader shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest
-{
+- (BOOL) resourceLoader:(AVAssetResourceLoader *)resourceLoader shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest {
     NSParameterAssert([loadingRequest.request.URL.path isEqualToString:_assetURL.path]);
     
-    if (self.contentInfo && _rootOperation.task.error) {
+    if (self.contentInfo &&
+        _rootOperation.task.error &&
+        _rootOperation.task.error.code != NSURLErrorCancelled) {
         [self handleRootOperationWithRequest:_rootOperation.task.originalRequest];
     }
     
+    BOOL shouldWaite = YES;
     if ([loadingRequest isContentInfoRequest]) {
-        return [self handleContentInfoRequest:loadingRequest];
+        [self handleContentInfoRequest:loadingRequest];
     } else if ([loadingRequest isContentDataRequest]) {
-        return [self handleContentDataRequest:loadingRequest];
+        [self handleContentDataRequest:loadingRequest];
+    } else {
+        shouldWaite = NO;
     }
     
-    return NO;
+    return shouldWaite;
 }
 
-- (void)resourceLoader:(AVAssetResourceLoader *)resourceLoader didCancelLoadingRequest:(AVAssetResourceLoadingRequest *)loadingRequest
-{
-//    NSLog(@"will cancel loading request %p",loadingRequest);
-    
+- (void)resourceLoader:(AVAssetResourceLoader *)resourceLoader didCancelLoadingRequest:(AVAssetResourceLoadingRequest *)loadingRequest {
     for (YPRemoteSourceLodingOperation *operation in self.loadingOperations.copy) {
         if (operation.loadingRequest == loadingRequest) {
             [self cancelOperation:operation error:nil];
@@ -433,8 +411,7 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
 
 #pragma mark NSURLSessionDataDelegate
 
-- (YPRemoteSourceLodingOperation *) operationWithTask:(NSURLSessionTask *)task isRoot:(BOOL *)isRoot
-{
+- (YPRemoteSourceLodingOperation *) operationWithTask:(NSURLSessionTask *)task isRoot:(BOOL *)isRoot {
     if (_rootOperation.task && task.taskIdentifier == _rootOperation.task.taskIdentifier) {
         if (isRoot) *isRoot = YES;
         return _rootOperation;
@@ -455,28 +432,49 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
           dataTask:(NSURLSessionDataTask *)dataTask
 didReceiveResponse:(NSURLResponse *)response
  completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))completionHandler {
-    if (!self.contentInfo && [response isKindOfClass:[NSHTTPURLResponse class]]) {
+    NSInteger statusCode = 0;
+    if ([response isKindOfClass:NSHTTPURLResponse.class]) {
+        statusCode = [(NSHTTPURLResponse*)response statusCode];
+    }
+    
+    if (statusCode > 0 && statusCode < 400 && !self.contentInfo) {
         self.contentInfo = [[YPAssetResourceContentInfo alloc] initWithHTTPResponse:(NSHTTPURLResponse*)response];
+        
+        BOOL isRoot = NO;
+        YPRemoteSourceLodingOperation *operation = [self operationWithTask:dataTask isRoot:&isRoot];
+        AVAssetResourceLoadingRequest *request = operation.loadingRequest;
+        if (request.isContentInfoRequest) {
+            [self fullfilLoadingRequest:request contentInfo:self.contentInfo];
+            request.response = response;
+            [self finishOperation:operation];
+        }
         
         // did get the content info, make the root operation run
         [self handleRootOperationWithRequest:dataTask.originalRequest];
     }
     
-    BOOL isRoot = NO;
-    YPRemoteSourceLodingOperation *operation = [self operationWithTask:dataTask isRoot:&isRoot];
-    YPAssetResourceContentInfo *contentInfo = self.contentInfo;
-    if (operation.loadingRequest.isContentInfoRequest && contentInfo) {
-        [self fullfilLoadingRequest:operation.loadingRequest contentInfo:contentInfo];
-        [self finishOperation:operation];
-    }
-    
     if (completionHandler) completionHandler(NSURLSessionResponseAllow);
 }
 
-- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
+- (void)URLSession:(NSURLSession *)session
+              task:(NSURLSessionTask *)task
+willPerformHTTPRedirection:(NSHTTPURLResponse *)response
+        newRequest:(NSURLRequest *)request
+ completionHandler:(void (^)(NSURLRequest *))completionHandler {
+    BOOL isRoot = NO;
+    YPRemoteSourceLodingOperation *operation = [self operationWithTask:task isRoot:&isRoot];
+    AVAssetResourceLoadingRequest *loadingRequest = operation.loadingRequest;
+    loadingRequest.redirect = request;
+    
+    if (completionHandler) completionHandler(request);
+}
+
+- (void)URLSession:(NSURLSession *)session
+          dataTask:(NSURLSessionDataTask *)dataTask
+    didReceiveData:(NSData *)data {
     BOOL isRoot = NO;
     YPRemoteSourceLodingOperation *operation = [self operationWithTask:dataTask isRoot:&isRoot];
-    const long long dataOffset = operation.currentOffset;
+    const NSInteger dataOffset = operation.currentOffset;
     NSRange dataRange = NSMakeRange(dataOffset, data.length);
     [operation respondWithData:data];
     
@@ -484,7 +482,7 @@ didReceiveResponse:(NSURLResponse *)response
         [self cacheData:data byteRange:dataRange];
         
         // update all other loading requests
-        const long long cachedOffset = _rootOperation.currentOffset;
+        const NSInteger cachedOffset = _rootOperation.currentOffset;
         for (YPRemoteSourceLodingOperation *op in self.loadingOperations.copy) {
             if (op.loadingRequest.isContentDataRequest) {
                 AVAssetResourceLoadingDataRequest *dataRequest = op.loadingRequest.dataRequest;
@@ -495,15 +493,21 @@ didReceiveResponse:(NSURLResponse *)response
                     [_dataReader seekToFileOffset:range.location];
                     NSData *data = [_dataReader readDataOfLength:range.length];
                     [dataRequest respondWithData:data];
+                    
+                    if (dataRequest.currentOffset - dataRequest.requestedOffset >= dataRequest.requestedLength) {
+                        [self finishOperation:op];
+                    }
                 }
-                
-                requestRange.location += range.length;
-                requestRange.length -= range.length;
-                if (requestRange.length <= 0) [self finishOperation:op];
             }
         }
-    } else if (operation.isAtEnd) {
-        [self finishOperation:operation];
+    } else if (operation) {
+        AVAssetResourceLoadingRequest *loadingRequest = operation.loadingRequest;
+        if (loadingRequest.isContentDataRequest) {
+            AVAssetResourceLoadingDataRequest *dataRequest = loadingRequest.dataRequest;
+            if (dataRequest.currentOffset - dataRequest.requestedOffset >= dataRequest.requestedLength) {
+                [self finishOperation:operation];
+            }
+        }
     }
 }
 
@@ -516,7 +520,9 @@ didReceiveResponse:(NSURLResponse *)response
 
 #pragma mark NSURLSessionTaskDelegate
 
-- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
+- (void)URLSession:(NSURLSession *)session
+              task:(NSURLSessionTask *)task
+didCompleteWithError:(NSError *)error {
     BOOL isRoot = NO;
     YPRemoteSourceLodingOperation *operation = [self operationWithTask:task isRoot:&isRoot];
     
@@ -526,13 +532,17 @@ didReceiveResponse:(NSURLResponse *)response
             for (YPRemoteSourceLodingOperation *op in self.loadingOperations.copy) {
                 [self cancelOperation:op error:error];
             }
+        } else {
+            [self saveCache];
+            [_cacheWriter closeFile];
+            _cacheWriter = nil;
         }
-//        NSLog(@"root operation finished");
-    } else if (operation && !operation.loadingRequest.isFinished) {
+    } else if (operation) {
         if (error) [self cancelOperation:operation error:error];
         else [self finishOperation:operation];
     }
 }
+
 
 @end
 
@@ -583,11 +593,11 @@ didReceiveResponse:(NSURLResponse *)response
     return !self.isContentInfoRequest && self.dataRequest != nil;
 }
 
-- (void) respondWithData:(NSData *)data dataOffset:(long long)dataOffset
+- (void) respondWithData:(NSData *)data dataOffset:(NSInteger)dataOffset
 {
     NSParameterAssert([self isContentDataRequest]);
     
-    NSUInteger dataLength = data.length;
+    NSInteger dataLength = data.length;
     NSRange dataRange = NSMakeRange(dataOffset, dataLength);
     AVAssetResourceLoadingDataRequest *dataRequest = self.dataRequest;
     
