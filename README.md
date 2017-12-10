@@ -34,6 +34,10 @@ AVAsset *asset = [AVURLAsset assetWithYPResourceURL:url];
 AVPlayerItem *playerItem = [AVPlayerItem playerItemWithAsset:asset];
 ```
 
+An ```YPAVPlayerResourceLoader``` instance is not designed to power mutiple asset URLs at the same time.
+
+Always create new ```YPAVPlayerResourceLoader``` when needed.
+
 ## License
 
 YPAVAssetResourceLoader is available under the MIT license. See the LICENSE file for more info.
