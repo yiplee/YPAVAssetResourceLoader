@@ -49,7 +49,6 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
 @property (nonatomic, strong) NSMutableArray<YPRemoteSourceLodingOperation *> *loadingOperations;
 
 @property (nonatomic, strong) NSURLSession *session;
-@property (nonatomic, strong) NSOperationQueue *responseQueue;
 
 @property (nonatomic, strong) YPAssetResourceContentInfo *contentInfo;
 
@@ -151,14 +150,10 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     _assetURL = assetURL;
     _loadingOperations = [NSMutableArray new];
     
-    _responseQueue = [NSOperationQueue new];
-//    _responseQueue.maxConcurrentOperationCount = 1;
-    _responseQueue.name = YPAVPlayerResourceLoaderDomain;
-    
     NSURLSessionConfiguration *configure = [NSURLSessionConfiguration defaultSessionConfiguration];
     _session = [NSURLSession sessionWithConfiguration:configure
                                              delegate:self
-                                        delegateQueue:_responseQueue];
+                                        delegateQueue:nil];
     
     return self;
 }
@@ -167,7 +162,6 @@ static NSString *const YPAVPlayerResourceLoaderDomain = @"com.yiplee.YPAVPlayerR
     [self.loadingOperations removeAllObjects];
     [self.session invalidateAndCancel];
     self.session = nil;
-    self.responseQueue = nil;
     
     if (cache) {
         [self saveCache];
