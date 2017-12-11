@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YPAVAssetResourceLoader'
-  s.version          = '0.1.1'
+  s.version          = '0.1.2'
   s.summary          = 'A lightweight AVAssetResourceLoaderDelegate implementation for short streaming media.'
 
   s.description      = <<-DESC
