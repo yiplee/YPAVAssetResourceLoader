@@ -1,8 +1,13 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="whP-gf-Uak">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="whP-gf-Uak">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -14,14 +19,66 @@
                         <viewControllerLayoutGuide type="bottom" id="Mvr-aV-6Um"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="TpU-gO-2f1">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="视频 URL" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="l9T-Qf-Fgq">
+                                <rect key="frame" x="16" y="42" width="72" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4" translatesAutoresizingMaskIntoConstraints="NO" id="iUF-m8-HUS">
+                                <rect key="frame" x="16" y="79" width="343" height="128"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="128" id="zNo-x3-tNl"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="使用 Resource Loader" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="A1a-hK-2sg">
+                                <rect key="frame" x="16" y="245" width="169" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="l6u-Lf-IIj">
+                                <rect key="frame" x="310" y="240" width="51" height="31"/>
+                            </switch>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wop-uj-In7">
+                                <rect key="frame" x="156" y="331" width="62" height="30"/>
+                                <state key="normal" title="播放视频"/>
+                                <connections>
+                                    <action selector="playVideo:" destination="whP-gf-Uak" eventType="touchUpInside" id="UBa-UJ-6lF"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" red="0.96871870760000001" green="0.97230118509999997" blue="0.95604401829999996" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="Wop-uj-In7" firstAttribute="centerX" secondItem="iUF-m8-HUS" secondAttribute="centerX" id="8Ud-tG-WfV"/>
+                            <constraint firstItem="l6u-Lf-IIj" firstAttribute="trailing" secondItem="iUF-m8-HUS" secondAttribute="trailing" id="HEf-85-6pR"/>
+                            <constraint firstItem="l9T-Qf-Fgq" firstAttribute="top" secondItem="uEw-UM-LJ8" secondAttribute="bottom" constant="22" id="Hiw-lX-nx0"/>
+                            <constraint firstItem="A1a-hK-2sg" firstAttribute="top" secondItem="iUF-m8-HUS" secondAttribute="bottom" constant="38" id="IJA-rH-Vk5"/>
+                            <constraint firstItem="l6u-Lf-IIj" firstAttribute="centerY" secondItem="A1a-hK-2sg" secondAttribute="centerY" id="OkE-ZN-dLD"/>
+                            <constraint firstItem="A1a-hK-2sg" firstAttribute="leading" secondItem="l9T-Qf-Fgq" secondAttribute="leading" id="VCX-fm-Sh2"/>
+                            <constraint firstItem="l9T-Qf-Fgq" firstAttribute="leading" secondItem="TpU-gO-2f1" secondAttribute="leadingMargin" id="aWo-MN-bf4"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="A1a-hK-2sg" secondAttribute="trailing" constant="20" symbolic="YES" id="beS-37-lIx"/>
+                            <constraint firstItem="Wop-uj-In7" firstAttribute="top" secondItem="A1a-hK-2sg" secondAttribute="bottom" constant="65" id="gVX-bk-AXB"/>
+                            <constraint firstItem="iUF-m8-HUS" firstAttribute="top" secondItem="l9T-Qf-Fgq" secondAttribute="bottom" constant="16" id="ilU-sM-5Kn"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="l9T-Qf-Fgq" secondAttribute="trailing" constant="20" symbolic="YES" id="mDP-MM-JdD"/>
+                            <constraint firstItem="A1a-hK-2sg" firstAttribute="leading" secondItem="iUF-m8-HUS" secondAttribute="leading" id="tdd-nx-2Yq"/>
+                            <constraint firstItem="iUF-m8-HUS" firstAttribute="trailing" secondItem="TpU-gO-2f1" secondAttribute="trailingMargin" id="tgw-6a-B4S"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="resourceLoaderSwitch" destination="l6u-Lf-IIj" id="BkK-4n-pI3"/>
+                        <outlet property="textView" destination="iUF-m8-HUS" id="ce4-zG-9bG"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tc2-Qw-aMS" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="305" y="433"/>
+            <point key="canvasLocation" x="304.80000000000001" y="432.23388305847078"/>
         </scene>
     </scenes>
 </document>
